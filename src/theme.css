@@ -1,0 +1,594 @@
+/* ==========================================================================
+   ต้นและเพชร Tennis Club — LEADERBOARD design tokens + tournament styling.
+   Court-night palette borrowed from the main app; dialed up to ATP-finals
+   broadcast energy: big display names, gold glow on #1, animated podium reveal.
+   Mobile-first portrait. Respects prefers-reduced-motion.
+   ========================================================================== */
+
+:root {
+  /* --- surfaces (from the main app) --- */
+  --bg: #0a1113;
+  --surface: #0e181a;
+  --surface-2: #12211f;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.22);
+
+  /* --- brand / accents (from the main app) --- */
+  --accent: #d6f441; /* optic yellow (tennis ball) */
+  --accent-ink: #0a1113;
+  --court-blue: #4fc0e6;
+
+  /* --- semantic (from the main app) --- */
+  --good: #39d08a;
+  --warn: #f1a24a;
+  --fault: #ff6a4d;
+
+  /* --- podium medals --- */
+  --gold: #ffd23f;
+  --gold-deep: #e8a613;
+  --silver: #d6e0e6;
+  --bronze: #e08a4b;
+
+  /* --- text (from the main app) --- */
+  --text: #f2f6f4;
+  --text-dim: #9fb0ad;
+  --text-faint: #63736f;
+
+  /* --- typography (from the main app) --- */
+  --font-display: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+    'Helvetica Neue', Arial, 'Noto Sans Thai', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+    'Noto Sans Thai', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code',
+    'Roboto Mono', Menlo, Consolas, monospace;
+
+  /* --- spacing / radius (from the main app) --- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 28px rgba(0, 0, 0, 0.5);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  /* Broadcast backdrop: subtle court-blue + gold glow over the court-night bg. */
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(79, 192, 230, 0.14), transparent 60%),
+    radial-gradient(90% 50% at 50% 0%, rgba(255, 210, 63, 0.08), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+}
+
+#root {
+  min-height: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.1;
+}
+p {
+  margin: 0;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+.dim {
+  color: var(--text-dim);
+}
+.faint {
+  color: var(--text-faint);
+}
+
+/* --- app shell --- */
+.app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: calc(var(--safe-top) + var(--sp-4)) var(--sp-4)
+    calc(var(--safe-bottom) + var(--sp-6));
+}
+
+/* --- masthead --- */
+.masthead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.brand-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 14px rgba(214, 244, 65, 0.7);
+  flex: none;
+}
+.masthead-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.masthead-brand {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+.masthead-sub {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--court-blue);
+}
+.lang-toggle {
+  margin-left: auto;
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  min-height: 36px;
+  flex: none;
+}
+
+/* --- period tabs (segmented, big) --- */
+.tabs {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  padding: 4px;
+  gap: 4px;
+}
+.tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  min-height: 44px;
+  flex: 1;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.06s ease;
+}
+.tab:active {
+  transform: scale(0.98);
+}
+.tab.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 0 18px rgba(214, 244, 65, 0.35);
+}
+
+/* --- status line --- */
+.statusline {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--good);
+  box-shadow: 0 0 8px var(--good);
+  animation: lb-blink 2s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   PODIUM — the dramatic hero. 2 | 1 | 3 with #1 tallest + gold glow.
+   ========================================================================== */
+.podium-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+.podium {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  align-items: end;
+  gap: var(--sp-2);
+  padding-top: var(--sp-5);
+}
+.podium-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  animation: lb-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.podium-col.p2 {
+  animation-delay: 0.05s;
+}
+.podium-col.p1 {
+  animation-delay: 0.18s;
+}
+.podium-col.p3 {
+  animation-delay: 0.32s;
+}
+
+.podium-medal {
+  font-size: 2rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+.podium-col.p1 .podium-medal {
+  font-size: 2.6rem;
+}
+
+.podium-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-align: center;
+  line-height: 1.05;
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+.podium-col.p1 .podium-name {
+  font-size: 1.5rem;
+  color: var(--gold);
+  text-shadow: 0 0 22px rgba(255, 210, 63, 0.55);
+}
+.podium-col.p2 .podium-name,
+.podium-col.p3 .podium-name {
+  font-size: 1.1rem;
+}
+.podium-col.p2 .podium-name {
+  color: var(--silver);
+}
+.podium-col.p3 .podium-name {
+  color: var(--bronze);
+}
+
+.podium-score {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1;
+}
+.podium-col.p1 .podium-score {
+  font-size: 2.1rem;
+  color: var(--accent);
+}
+.podium-col.p2 .podium-score,
+.podium-col.p3 .podium-score {
+  font-size: 1.5rem;
+  color: var(--text);
+}
+.podium-substat {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* the physical block each champ stands on */
+.podium-block {
+  width: 100%;
+  border-radius: var(--radius) var(--radius) 0 0;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: var(--sp-2);
+  position: relative;
+}
+.podium-block-num {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 2rem;
+  color: var(--line-strong);
+}
+.podium-col.p1 .podium-block {
+  height: 132px;
+  background: linear-gradient(180deg, rgba(255, 210, 63, 0.22), rgba(232, 166, 19, 0.06));
+  border-color: rgba(255, 210, 63, 0.5);
+  box-shadow: 0 -2px 30px rgba(255, 210, 63, 0.3);
+}
+.podium-col.p1 .podium-block-num {
+  color: var(--gold);
+  text-shadow: 0 0 16px rgba(255, 210, 63, 0.6);
+}
+.podium-col.p2 .podium-block {
+  height: 96px;
+  border-color: rgba(214, 224, 230, 0.4);
+}
+.podium-col.p3 .podium-block {
+  height: 72px;
+  border-color: rgba(224, 138, 75, 0.4);
+}
+/* subtle gold shimmer behind #1 */
+.podium-col.p1 .podium-block::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.18) 48%,
+    transparent 62%
+  );
+  background-size: 220% 100%;
+  animation: lb-shimmer 3.4s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   STANDINGS TABLE — ranks 4..50 (and 1..3 too when few players).
+   ========================================================================== */
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.board-head {
+  display: grid;
+  grid-template-columns: 2.4ch 1fr auto auto;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-3);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+.board-head .col-num {
+  text-align: right;
+}
+.board-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.rank-row {
+  display: grid;
+  grid-template-columns: 2.4ch 1fr auto auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  animation: lb-fade 0.4s ease both;
+}
+.rank-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  text-align: right;
+}
+.rank-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.35rem; /* BIG — names are the star (user request) */
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rank-avg,
+.rank-max {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  line-height: 1.1;
+}
+.rank-avg .v {
+  display: block;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--accent);
+}
+.rank-max .v {
+  display: block;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+.rank-avg .k,
+.rank-max .k {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+.rank-meta {
+  grid-column: 2 / -1;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+/* medal tint for top-3 rows that spill into the table (few players) */
+.rank-row.top1 {
+  border-color: rgba(255, 210, 63, 0.5);
+  box-shadow: 0 0 18px rgba(255, 210, 63, 0.18);
+}
+.rank-row.top1 .rank-num {
+  color: var(--gold);
+}
+.rank-row.top2 .rank-num {
+  color: var(--silver);
+}
+.rank-row.top3 .rank-num {
+  color: var(--bronze);
+}
+
+/* ==========================================================================
+   EMPTY + OFFLINE states — intentional, on-brand.
+   ========================================================================== */
+.state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  text-align: center;
+  padding: var(--sp-7) var(--sp-4);
+  background: var(--surface);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+}
+.state-emoji {
+  font-size: 3rem;
+  line-height: 1;
+}
+.state-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+}
+.state-body {
+  color: var(--text-dim);
+  max-width: 30ch;
+}
+.state-body-bi {
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  max-width: 34ch;
+}
+.btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  min-height: 48px;
+}
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* --- animations --- */
+@keyframes lb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes lb-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes lb-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+@keyframes lb-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .podium-col,
+  .rank-row,
+  .podium-col.p1 .podium-block::after,
+  .live-dot {
+    animation: none !important;
+  }
+}

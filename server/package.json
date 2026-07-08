@@ -1,0 +1,14 @@
+{
+  "name": "ton-phet-tennis-ranking-server",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Leaderboard API + static server for ต้นและเพชร Tennis Club ranking site",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "pg": "^8.13.0"
+  }
+}
