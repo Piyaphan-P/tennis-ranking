@@ -24,7 +24,7 @@ interface Strings {
 
 export const I18N: Record<Lang, Strings> = {
   th: {
-    brand: 'ต้นและเพชร Tennis Club',
+    brand: 'ADGE Tennis',
     subtitle: 'กระดานแชมป์ · LEADERBOARD',
     periods: { day: 'ประจำวัน', week: 'ประจำสัปดาห์', month: 'ประจำเดือน' },
     podiumTitle: 'โพเดียมแชมป์',
@@ -44,7 +44,7 @@ export const I18N: Record<Lang, Strings> = {
     loading: 'กำลังโหลดอันดับ…',
   },
   en: {
-    brand: 'ต้นและเพชร Tennis Club',
+    brand: 'ADGE Tennis',
     subtitle: 'CHAMPIONS BOARD · LEADERBOARD',
     periods: { day: 'Day', week: 'Week', month: 'Month' },
     podiumTitle: 'THE PODIUM',

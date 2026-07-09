@@ -1,5 +1,5 @@
 // ============================================================================
-// ต้นและเพชร Tennis Club — ranking: pure logic + SQL (single source of truth).
+// ADGE Tennis — ranking: pure logic + SQL (single source of truth).
 //
 // This module is plain ESM JS on PURPOSE: it is imported BOTH by the Node
 // server at runtime (server/index.mjs, no build step) AND by the vitest tests

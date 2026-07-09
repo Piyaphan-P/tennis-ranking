@@ -1,4 +1,4 @@
-// ต้นและเพชร Tennis Club — ranking leaderboard API + static server.
+// ADGE Tennis — ranking leaderboard API + static server.
 // -----------------------------------------------------------------------------
 // Serves the built frontend (../dist) AND exposes:
 //   GET /healthz               → 200 { ok }
@@ -75,5 +75,5 @@ app.use(express.static(dist));
 app.get('*', (_req, res) => res.sendFile(path.join(dist, 'index.html')));
 
 app.listen(PORT, () => {
-  console.log(`ต้นและเพชร Tennis Club ranking server on :${PORT} (db: ${dbReady() ? 'on' : 'OFF'})`);
+  console.log(`ADGE Tennis ranking server on :${PORT} (db: ${dbReady() ? 'on' : 'OFF'})`);
 });

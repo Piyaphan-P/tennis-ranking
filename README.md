@@ -1,10 +1,11 @@
-# กระดานแชมป์ · ต้นและเพชร Tennis Club
+# กระดานแชมป์ · ADGE Tennis (SIT)
 
-เว็บไซต์จัดอันดับ (leaderboard) ของ **ต้นและเพชร Tennis Club** — โชว์ว่าใครตีเทนนิสได้คะแนนดีที่สุด
+เว็บไซต์จัดอันดับ (leaderboard) ของ **ADGE Tennis** — โชว์ว่าใครตีเทนนิสได้คะแนนดีที่สุด
 ในสไตล์จอถ่ายทอดสดทัวร์นาเมนต์ (ATP finals): ชื่อผู้เล่นตัวใหญ่เด่น ๆ, **โพเดียมแชมป์** Top 3
 พร้อมถ้วยรางวัลและแสงทองรอบอันดับ 1, และตารางอันดับทั้งหมด แยกเป็น **ประจำวัน / ประจำสัปดาห์ / ประจำเดือน**
 
-> แบรนด์: **"ต้นและเพชร Tennis Club"** เท่านั้น (ห้ามใช้ "ต้นเป็ด" / "TonPed")
+> แบรนด์ (SIT): **"ADGE Tennis"** เท่านั้น
+> นี่คือ branch **SIT** (non-production). Production อยู่บน branch `main` (แบรนด์ ต้นและเพชร Tennis Club).
 
 ## ภาพหน้าจอ
 
@@ -37,5 +38,9 @@ npm run typecheck && npm run test && npm run build
 
 ## Deploy
 
-Cloud Run · image `asia-southeast1-docker.pkg.dev/ton-team/ton-phet/ranking:v1` · service
-`ton-phet-ranking` · region `asia-southeast1` · ต้องตั้ง env `DATABASE_URL` (ดู `CLAUDE.md`)
+Cloud Run · image `asia-southeast1-docker.pkg.dev/ton-team/ton-phet/ranking:v1` (Artifact Registry
+path ไม่เปลี่ยน — เป็น infra ที่ใช้ร่วมกัน) · region `asia-southeast1` · ต้องตั้ง env `DATABASE_URL`
++ `DB_SCHEMA=sit` (ดู `CLAUDE.md`).
+
+- **SIT** service: `adge-ranking-sit` (branch นี้), `DB_SCHEMA=sit`.
+- **Production** service: `ton-phet-ranking` (branch `main`), `DB_SCHEMA=public`.

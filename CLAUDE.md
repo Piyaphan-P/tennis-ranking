@@ -2,13 +2,24 @@
 
 Guidance for Claude Code working in this repo. These instructions override default behavior.
 
+# (this file retitled for the SIT branch)
+
 ## Project
 
-**กระดานแชมป์ ต้นและเพชร Tennis Club** — the standalone competition **leaderboard** site for the Ton & Phet Tennis Club coaching app. Thai-primary, mobile-first, tournament-broadcast energy (ATP-finals style): big player names, a dramatic gold-glow **podium** for the top 3, and a full standings table, per **ประจำวัน / ประจำสัปดาห์ / ประจำเดือน** (day / week / month).
+**กระดานแชมป์ ADGE Tennis (SIT)** — the standalone competition **leaderboard** site. Thai-primary, mobile-first, tournament-broadcast energy (ATP-finals style): big player names, a dramatic gold-glow **podium** for the top 3, and a full standings table, per **ประจำวัน / ประจำสัปดาห์ / ประจำเดือน** (day / week / month).
 
-Brand name is **"ต้นและเพชร Tennis Club"** (Ton & Phet). NEVER write "ต้นเป็ด" / "TonPed" in UI copy.
+Brand name on this branch is **"ADGE Tennis"**. This is the **SIT (non-production)** variant. The `main` branch is production, branded **"ต้นและเพชร Tennis Club"** (Ton & Phet).
 
 This is a **separate** service from the main coaching app (`../tennis_project01`). Do not modify that folder.
+
+## SIT environment
+
+This branch (`SIT`) is the **non-production** variant, isolated from production but sharing the same infra:
+
+- **Brand:** all user-visible copy, `<title>`/meta, and docs headings say **"ADGE Tennis"** — never "ต้นและเพชร" / "Ton & Phet" / "ton-phet" in UI or generated artifact names. (Artifact Registry image paths and PROD-doc infra strings keep `ton-phet` — those are shared infra identifiers, not brand copy.)
+- **DB isolation (`DB_SCHEMA`):** both environments share one Supabase Postgres. `DB_SCHEMA` (default `public` = prod, unchanged) selects the schema. **SIT sets `DB_SCHEMA=sit`.** `server/db.mjs` sanitizes it (`/^[a-z_][a-z0-9_]*$/`, else falls back to `public` + logs), pins every connection via a `pool.on('connect')` → `SET search_path TO <schema>` hook (Supabase pooler on :5432 is SESSION mode, so the SET persists per connection), and `migrate()` runs `CREATE SCHEMA IF NOT EXISTS <schema>` before the table DDL. **All SQL stays unqualified** — search_path does the isolation; never hardcode a schema prefix. The backfill reads `sessions`/`shots` unqualified, so on SIT it resolves `sit.sessions` / `sit.shots` (written by the SIT main app), and writes `sit.leaderboard_records`.
+- **SIT Cloud Run service:** `adge-ranking-sit` (region `asia-southeast1`; deploy via the same AR image path — infra unchanged; env `DATABASE_URL` + `DB_SCHEMA=sit`).
+- **`main` branch = production:** service `ton-phet-ranking`, `DB_SCHEMA=public` (or unset), brand ต้นและเพชร Tennis Club. The orchestrator handles push/deploy; do not touch `main` from here.
 
 ## Stack
 

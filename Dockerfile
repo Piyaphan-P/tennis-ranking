@@ -1,4 +1,4 @@
-# ต้นและเพชร Tennis Club — ranking leaderboard: single-container build for Cloud Run
+# ADGE Tennis (SIT) — ranking leaderboard: single-container build for Cloud Run
 # Stage 1: build the Vite frontend
 FROM node:22-slim AS build
 WORKDIR /app

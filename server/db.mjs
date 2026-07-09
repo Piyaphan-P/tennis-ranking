@@ -1,5 +1,5 @@
 // ============================================================================
-// ต้นและเพชร Tennis Club — ranking DB access (Supabase Postgres, shared w/ app).
+// ADGE Tennis — ranking DB access (Supabase Postgres, shared w/ app).
 //
 // Lazy singleton pg Pool, created ONLY when DATABASE_URL is set. TLS required,
 // tiny pool, cold-disconnect tolerant (Supabase pooler reaps idle sockets). Any
@@ -10,6 +10,14 @@
 // It BACKFILLS that table from live sessions⋈shots on boot + hourly + throttled
 // on-demand (>5 min since last), as a safety net behind the main app's own
 // per-session-end insert. Reads for the API come ONLY from leaderboard_records.
+//
+// SCHEMA ISOLATION (DB_SCHEMA): prod uses 'public' (unchanged behavior); SIT
+// uses 'sit' so both environments share ONE Supabase database without colliding.
+// A per-connection 'connect' hook runs SET search_path TO <schema> (the pooler
+// on :5432 is SESSION mode → the SET persists for that connection), so EVERY
+// query below stays unqualified — search_path does all the isolation. The SIT
+// app writes sit.sessions / sit.shots, so the backfill's unqualified sessions⋈
+// shots read resolves within the same schema. NEVER hardcode a schema prefix.
 // ============================================================================
 
 import pg from 'pg';
@@ -17,6 +25,19 @@ import { MIGRATE_SQL, BACKFILL_SQL } from './leaderboard.mjs';
 
 const { Pool } = pg;
 const CONN = process.env.DATABASE_URL || '';
+
+/**
+ * Target Postgres schema. Default 'public' = prod behavior unchanged. A valid
+ * value must match /^[a-z_][a-z0-9_]*$/ (safe to interpolate into SET / CREATE
+ * SCHEMA — SET search_path cannot be parameterized); anything else falls back to
+ * 'public' with a log line. Sanitized ONCE at module load.
+ */
+const DB_SCHEMA = (() => {
+  const raw = (process.env.DB_SCHEMA || 'public').trim();
+  if (/^[a-z_][a-z0-9_]*$/.test(raw)) return raw;
+  console.error(`[db] invalid DB_SCHEMA "${raw}" — falling back to 'public'`);
+  return 'public';
+})();
 
 /** Lazy singleton — undefined until first use, null when no DATABASE_URL. */
 let pool;
@@ -41,6 +62,18 @@ function getPool() {
   pool.on('error', (err) => {
     console.error('[db] idle client error (ignored):', err?.message || err);
   });
+  // Pin every new connection to the target schema (SIT isolation). Only when
+  // DB_SCHEMA is non-public — prod keeps its default search_path (\"$user\",
+  // public) bit-for-bit unchanged, no extra round-trip. node-postgres queues
+  // this SET on the client before the app's first query() runs on it, so all
+  // unqualified queries then resolve within DB_SCHEMA.
+  if (DB_SCHEMA !== 'public') {
+    pool.on('connect', (client) => {
+      client.query(`SET search_path TO ${DB_SCHEMA}`).catch((err) =>
+        console.error('[db] SET search_path failed:', err?.message || err),
+      );
+    });
+  }
   return pool;
 }
 
@@ -54,6 +87,12 @@ export async function query(text, params) {
 /** Create leaderboard_records if absent. No-op when DB not configured. */
 export async function migrate() {
   if (!dbReady()) return;
+  // Ensure the isolation schema exists before CREATE TABLE lands in it (via
+  // search_path). Skip for 'public' (always present). CREATE SCHEMA is
+  // schema-qualified by name, so it does not depend on search_path itself.
+  if (DB_SCHEMA !== 'public') {
+    await query(`CREATE SCHEMA IF NOT EXISTS ${DB_SCHEMA}`);
+  }
   await query(MIGRATE_SQL);
 }
 
@@ -98,7 +137,7 @@ export function initDb() {
     .then(() => backfill())
     .then(() => {
       lastBackfillAt = Date.now();
-      console.log('[db] migrated + backfilled leaderboard_records; rankings ON');
+      console.log(`[db] migrated + backfilled leaderboard_records (schema: ${DB_SCHEMA}); rankings ON`);
     })
     .catch((err) => console.error('[db] boot init failed (non-fatal):', err?.message || err));
   const timer = setInterval(() => {

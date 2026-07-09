@@ -1,9 +1,9 @@
 {
-  "name": "ton-phet-tennis-ranking",
+  "name": "adge-tennis-ranking",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Competition leaderboard site for ต้นและเพชร Tennis Club (Ton & Phet Tennis Club)",
+  "description": "Competition leaderboard site for ADGE Tennis (SIT)",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

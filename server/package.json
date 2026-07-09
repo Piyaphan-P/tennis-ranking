@@ -1,9 +1,9 @@
 {
-  "name": "ton-phet-tennis-ranking-server",
+  "name": "adge-tennis-ranking-server",
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Leaderboard API + static server for ต้นและเพชร Tennis Club ranking site",
+  "description": "Leaderboard API + static server for ADGE Tennis (SIT) ranking site",
   "scripts": {
     "start": "node index.mjs"
   },
