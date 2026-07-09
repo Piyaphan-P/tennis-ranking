@@ -14,8 +14,8 @@
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { query, dbReady, initDb, maybeBackfill } from './db.mjs';
-import { periodWindow, mergeAndRank, WINDOW_SQL } from './leaderboard.mjs';
+import { dbReady, initDb, maybeBackfill, fetchWindowRecords, backendName } from './dbBackend.mjs';
+import { mergeAndRank } from './leaderboard.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -48,14 +48,7 @@ app.get('/api/leaderboard', async (req, res) => {
   try {
     // Throttled best-effort refresh so on-court sessions show up quickly.
     await maybeBackfill();
-    const { from, to } = periodWindow(period);
-    const { rows } = await query(WINDOW_SQL, [from, to]);
-    const records = rows.map((r) => ({
-      userName: r.user_name,
-      avgScore: r.avg_score,
-      maxScore: r.max_score,
-      shotCount: r.shot_count,
-    }));
+    const records = await fetchWindowRecords(period);
     const entries = mergeAndRank(records);
     res.set('Cache-Control', 'no-store');
     res.json({ period, updatedAt: new Date().toISOString(), entries });
@@ -75,5 +68,5 @@ app.use(express.static(dist));
 app.get('*', (_req, res) => res.sendFile(path.join(dist, 'index.html')));
 
 app.listen(PORT, () => {
-  console.log(`ADGE Tennis ranking server on :${PORT} (db: ${dbReady() ? 'on' : 'OFF'})`);
+  console.log(`ADGE Tennis ranking server on :${PORT} (backend: ${backendName}, db: ${dbReady() ? 'on' : 'OFF'})`);
 });

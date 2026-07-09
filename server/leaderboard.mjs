@@ -60,6 +60,23 @@ export function periodWindow(period, today = bangkokDayString()) {
   }
 }
 
+/**
+ * Same inclusive Bangkok-day window as periodWindow(), but expressed as UTC
+ * Date instants for a timestamp range query (Firestore backend). Returns
+ * [start, endExclusive): start = 00:00:00 Bangkok of the `from` day;
+ * endExclusive = 00:00:00 Bangkok of the day AFTER `to`. Bangkok is UTC+7 with
+ * no DST, so start-of-day = 'YYYY-MM-DDT00:00:00+07:00'. This is exactly
+ * equivalent to the postgres WINDOW_SQL `(played_at AT TIME ZONE 'Asia/Bangkok')
+ * ::date BETWEEN from AND to` (both include the whole `to` calendar day).
+ * Pure — the load-bearing conversion, unit-tested for the +7 offset.
+ */
+export function periodWindowInstants(period, today = bangkokDayString()) {
+  const { from, to } = periodWindow(period, today);
+  const start = new Date(`${from}T00:00:00+07:00`);
+  const endExclusive = new Date(`${addDays(to, 1)}T00:00:00+07:00`);
+  return { start, endExclusive };
+}
+
 /** Normalize a raw user_name: blank/whitespace → the anonymous bucket. */
 export function normalizeUserName(name) {
   const t = typeof name === 'string' ? name.trim() : '';

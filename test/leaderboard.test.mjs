@@ -6,6 +6,7 @@ import {
   bangkokDayString,
   addDays,
   periodWindow,
+  periodWindowInstants,
   normalizeUserName,
   mergeRecords,
   rankEntries,
@@ -52,6 +53,38 @@ describe('addDays / periodWindow', () => {
 
   it('throws on an unknown period', () => {
     expect(() => periodWindow('year', '2026-07-08')).toThrow();
+  });
+});
+
+describe('periodWindowInstants (Bangkok day-strings → UTC Timestamp bounds)', () => {
+  it('day window: [00:00 BKK of today, 00:00 BKK of tomorrow) as UTC instants', () => {
+    const { start, endExclusive } = periodWindowInstants('day', '2026-07-08');
+    // 00:00 Bangkok (UTC+7) = 17:00 UTC the previous day.
+    expect(start.toISOString()).toBe('2026-07-07T17:00:00.000Z');
+    // exclusive end = 00:00 BKK of 2026-07-09 = 17:00 UTC 2026-07-08 → the whole
+    // 2026-07-08 Bangkok day is covered, matching postgres inclusive-`to` semantics.
+    expect(endExclusive.toISOString()).toBe('2026-07-08T17:00:00.000Z');
+  });
+
+  it('week window spans 7 Bangkok days (today-6 .. today) as a half-open UTC range', () => {
+    const { start, endExclusive } = periodWindowInstants('week', '2026-07-08');
+    // from = 2026-07-02 → start 00:00 BKK = 2026-07-01T17:00Z
+    expect(start.toISOString()).toBe('2026-07-01T17:00:00.000Z');
+    expect(endExclusive.toISOString()).toBe('2026-07-08T17:00:00.000Z');
+    // exactly 7 days wide
+    expect((endExclusive - start) / 86_400_000).toBe(7);
+  });
+
+  it('month window spans 30 Bangkok days and can cross a month boundary', () => {
+    const { start, endExclusive } = periodWindowInstants('month', '2026-07-08');
+    // from = 2026-06-09 → 2026-06-08T17:00Z
+    expect(start.toISOString()).toBe('2026-06-08T17:00:00.000Z');
+    expect(endExclusive.toISOString()).toBe('2026-07-08T17:00:00.000Z');
+    expect((endExclusive - start) / 86_400_000).toBe(30);
+  });
+
+  it('throws on an unknown period (delegates to periodWindow)', () => {
+    expect(() => periodWindowInstants('year', '2026-07-08')).toThrow();
   });
 });
 

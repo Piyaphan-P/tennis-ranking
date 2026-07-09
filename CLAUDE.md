@@ -21,6 +21,24 @@ This branch (`SIT`) is the **non-production** variant, isolated from production 
 - **SIT Cloud Run service:** `adge-ranking-sit` (region `asia-southeast1`; deploy via the same AR image path — infra unchanged; env `DATABASE_URL` + `DB_SCHEMA=sit`).
 - **`main` branch = production:** service `ton-phet-ranking`, `DB_SCHEMA=public` (or unset), brand ต้นและเพชร Tennis Club. The orchestrator handles push/deploy; do not touch `main` from here.
 
+### DB backend (`DB_BACKEND`) — Postgres | Firestore
+
+The data layer is pluggable behind ONE shared interface (`dbReady · initDb · maybeBackfill · fetchWindowRecords`) selected once at boot by `DB_BACKEND`. `index.mjs` imports only from `server/dbBackend.mjs` and never learns which backend is live; the unused driver (`pg` or `@google-cloud/firestore`) is never even loaded (dynamic import).
+
+| `DB_BACKEND` | Module | Storage | Notes |
+|---|---|---|---|
+| `postgres` (default) | `dbPostgres.mjs` → **untouched** `db.mjs` | shared Supabase Postgres | **byte-identical to prod today.** Uses `DATABASE_URL` + `DB_SCHEMA`. |
+| `firestore` | `dbFirestore.mjs` | Firestore native-mode db (SIT) | Uses `FIRESTORE_DATABASE` (default `nonprd`) + `GOOGLE_CLOUD_PROJECT` (default `ton-team`) + ADC. `DATABASE_URL` ignored. |
+
+Pure ranking math is shared by BOTH backends: each backend only returns raw per-session records `[{userName, avgScore, maxScore, shotCount}]`; `index.mjs` runs `mergeAndRank()` (shot-weighted avg + tie-breaks) identically for either. The Bangkok-day→UTC-instant conversion for the Firestore range query is the pure, unit-tested `periodWindowInstants()` in `leaderboard.mjs` — same day boundaries as the postgres `WINDOW_SQL` (`from` 00:00 BKK inclusive .. `to`+1 day 00:00 BKK exclusive = whole `to` day covered).
+
+**Firestore data contract (SIT `nonprd`, frozen — both repos agree):**
+- `sessions/{sessionId}`: `{ userName, startedAt: Timestamp, endedAt, avgScore, shotCount, summary, expireAt: Timestamp }`
+- `sessions/{sessionId}/shots/{shotId}`: `{ idx, type, score, angles, statuses, issues, peakWristSpeed, clipPath, clipMime, audioPath, audioMime, createdAt: Timestamp, expireAt: Timestamp }`
+- `leaderboard_records/{sessionId}` (this service's durable read source): `{ userName, avgScore, maxScore, shotCount, playedAt: Timestamp }` — **NO `expireAt` → durable forever.** Doc id = sessionId ⇒ idempotent `set()` upsert. Backfill (boot + hourly + throttled on-demand >5 min) reads `sessions` where `startedAt ≥ now−3d`, aggregates each session's `shots` subcollection (avg/max/count over `score`), and upserts here. Read path queries `leaderboard_records` by `playedAt` range only.
+- **TTL:** Firestore **platform TTL** on field `expireAt` (configured on the db, not in code) auto-deletes expired `sessions`/`shots`. This service **never** deletes anything on the Firestore path (no purge job).
+- **Cloud Run:** runtime SA needs `roles/datastore.user`; credentials via ADC/metadata server (no env key). Local dev: `GOOGLE_APPLICATION_CREDENTIALS` → SA key (gitignored). Unreachable/unauthorized backend surfaces as a rejected read → the same bilingual **503 JSON** as the postgres path.
+
 ## Stack
 
 Vite + React 18 + TypeScript · plain CSS design tokens (`src/theme.css`, no Tailwind, no Zustand — plain `useState`/`useEffect`) · Node/Express API + static server (`server/index.mjs`) · `pg` → shared Supabase Postgres.
