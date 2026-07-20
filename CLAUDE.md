@@ -16,10 +16,10 @@ This is a **separate** service from the main coaching app (`../tennis_project01`
 
 This branch (`SIT`) is the **non-production** variant, isolated from production but sharing the same infra:
 
-- **Brand:** all user-visible copy, `<title>`/meta, and docs headings say **"ADGE Tennis"** — never "ต้นและเพชร" / "Ton & Phet" / "ton-phet" in UI or generated artifact names. (Artifact Registry image paths and PROD-doc infra strings keep `ton-phet` — those are shared infra identifiers, not brand copy.)
+- **Brand:** all user-visible copy, `<title>`/meta, and docs headings say **"ADGE Tennis"** — never "ต้นและเพชร" / "Ton & Phet" / "ton-phet" in UI or generated artifact names. (Infra identifiers now live under GCP project `adge-tennis-nonprd` / Artifact Registry `…/adge-tennis-nonprd/adge/` — the old `ton-team`/`ton-phet` project is deleted.)
 - **DB isolation (`DB_SCHEMA`):** both environments share one Supabase Postgres. `DB_SCHEMA` (default `public` = prod, unchanged) selects the schema. **SIT sets `DB_SCHEMA=sit`.** `server/db.mjs` sanitizes it (`/^[a-z_][a-z0-9_]*$/`, else falls back to `public` + logs), pins every connection via a `pool.on('connect')` → `SET search_path TO <schema>` hook (Supabase pooler on :5432 is SESSION mode, so the SET persists per connection), and `migrate()` runs `CREATE SCHEMA IF NOT EXISTS <schema>` before the table DDL. **All SQL stays unqualified** — search_path does the isolation; never hardcode a schema prefix. The backfill reads `sessions`/`shots` unqualified, so on SIT it resolves `sit.sessions` / `sit.shots` (written by the SIT main app), and writes `sit.leaderboard_records`.
 - **SIT Cloud Run service:** `adge-ranking-sit` (region `asia-southeast1`; deploy via the same AR image path — infra unchanged; env `DATABASE_URL` + `DB_SCHEMA=sit`).
-- **`main` branch = production:** service `ton-phet-ranking`, `DB_SCHEMA=public` (or unset), brand ต้นและเพชร Tennis Club. The orchestrator handles push/deploy; do not touch `main` from here.
+- **`main` branch = production:** GCP project `adge-tennis-prod` (empty as of 2026-07-20 — APIs not yet enabled, prod migration is future work), `DB_SCHEMA=public` (or unset), brand ต้นและเพชร Tennis Club. The orchestrator handles push/deploy; do not touch `main` from here.
 
 ### DB backend (`DB_BACKEND`) — Postgres | Firestore
 
@@ -28,7 +28,7 @@ The data layer is pluggable behind ONE shared interface (`dbReady · initDb · m
 | `DB_BACKEND` | Module | Storage | Notes |
 |---|---|---|---|
 | `postgres` (default) | `dbPostgres.mjs` → **untouched** `db.mjs` | shared Supabase Postgres | **byte-identical to prod today.** Uses `DATABASE_URL` + `DB_SCHEMA`. |
-| `firestore` | `dbFirestore.mjs` | Firestore native-mode db (SIT) | Uses `FIRESTORE_DATABASE` (default `nonprd`) + `GOOGLE_CLOUD_PROJECT` (default `ton-team`) + ADC. `DATABASE_URL` ignored. |
+| `firestore` | `dbFirestore.mjs` | Firestore native-mode db (SIT) | Uses `FIRESTORE_DATABASE` (default `nonprd`) + `GOOGLE_CLOUD_PROJECT` (default `adge-tennis-nonprd`) + ADC. `DATABASE_URL` ignored. |
 
 Pure ranking math is shared by BOTH backends: each backend only returns raw per-session records `[{userName, avgScore, maxScore, shotCount}]`; `index.mjs` runs `mergeAndRank()` (shot-weighted avg + tie-breaks) identically for either. The Bangkok-day→UTC-instant conversion for the Firestore range query is the pure, unit-tested `periodWindowInstants()` in `leaderboard.mjs` — same day boundaries as the postgres `WINDOW_SQL` (`from` 00:00 BKK inclusive .. `to`+1 day 00:00 BKK exclusive = whole `to` day covered).
 
@@ -114,16 +114,17 @@ Single container (Node serves `dist/` + `/api`). Build locally and push, then de
 
 ```bash
 # colima / local docker daemon must be running
+gcloud config set project adge-tennis-nonprd    # GCP: adge-tennis-nonprd (SIT) / adge-tennis-prod (prod, future)
 docker buildx build --platform linux/amd64 \
-  -t asia-southeast1-docker.pkg.dev/ton-team/ton-phet/ranking:v1 --push .
+  -t asia-southeast1-docker.pkg.dev/adge-tennis-nonprd/adge/ranking:v1 --push .
 
-gcloud run deploy ton-phet-ranking \
-  --image asia-southeast1-docker.pkg.dev/ton-team/ton-phet/ranking:v1 \
-  --region asia-southeast1 --allow-unauthenticated \
+gcloud run deploy adge-ranking-sit \
+  --image asia-southeast1-docker.pkg.dev/adge-tennis-nonprd/adge/ranking:v1 \
+  --region asia-southeast1 --allow-unauthenticated --project adge-tennis-nonprd \
   --update-env-vars 'DATABASE_URL=<the Supabase IPv4-pooler URL, url-encoded password>'
 ```
 
-- Project `ton-team`, region `asia-southeast1`, service `ton-phet-ranking`.
+- Project `adge-tennis-nonprd` (SIT; prod project `adge-tennis-prod` is empty as of 2026-07-20 — future), region `asia-southeast1`, service `adge-ranking-sit`.
 - **Needs `DATABASE_URL`** (same shared Supabase as the main app). Use the **IPv4 pooler** host
   `aws-0-<region>.pooler.supabase.com:5432` (the direct `db.*.supabase.co` host is IPv6-only),
   password URL-encoded. Secret Manager is unavailable to the deploy SA → pass via `--update-env-vars`.
@@ -141,3 +142,7 @@ Commit/push only when asked (the orchestrator handles git + deploy). Co-author t
 `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`
 
 > Note (prod): Cloud Run's Google Front End reserves `/healthz` on `*.run.app` and answers 404 at the edge — the container never sees it. Health-check via `/api/leaderboard?period=day` instead; `/healthz` still works locally.
+
+## Migration log
+
+- **GCP migration ton-team → adge-tennis-\* (2026-07-20):** the old `ton-team` GCP project was deleted; all references moved to **`adge-tennis-nonprd`** (SIT) / **`adge-tennis-prod`** (prod, empty/future). Code default `GOOGLE_CLOUD_PROJECT` in `server/dbFirestore.mjs` → `adge-tennis-nonprd`; `.env.example` comment updated; Artifact Registry image path → `asia-southeast1-docker.pkg.dev/adge-tennis-nonprd/adge/ranking`; deploy docs use `gcloud config set project adge-tennis-nonprd` and service `adge-ranking-sit` (unchanged). Firestore DB `nonprd` and the durable `leaderboard_records` read source unchanged. Matches the sibling app repo's same-day migration. (`.gitignore`/security `ton-team-*.json` SA-key pattern intentionally kept.)

@@ -29,7 +29,7 @@
 import { Firestore, Timestamp } from '@google-cloud/firestore';
 import { periodWindowInstants } from './leaderboard.mjs';
 
-const PROJECT = process.env.GOOGLE_CLOUD_PROJECT || 'ton-team';
+const PROJECT = process.env.GOOGLE_CLOUD_PROJECT || 'adge-tennis-nonprd';
 const DATABASE = process.env.FIRESTORE_DATABASE || 'nonprd';
 const ANON = 'ผู้เล่นนิรนาม';
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;

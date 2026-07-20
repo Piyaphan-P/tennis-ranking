@@ -38,9 +38,9 @@ npm run typecheck && npm run test && npm run build
 
 ## Deploy
 
-Cloud Run · image `asia-southeast1-docker.pkg.dev/ton-team/ton-phet/ranking:v1` (Artifact Registry
-path ไม่เปลี่ยน — เป็น infra ที่ใช้ร่วมกัน) · region `asia-southeast1` · ต้องตั้ง env `DATABASE_URL`
-+ `DB_SCHEMA=sit` (ดู `CLAUDE.md`).
+Cloud Run · image `asia-southeast1-docker.pkg.dev/adge-tennis-nonprd/adge/ranking:v1`
+(GCP project `adge-tennis-nonprd`) · region `asia-southeast1` · ต้องตั้ง env `DATABASE_URL`
++ `DB_SCHEMA=sit` หรือ `DB_BACKEND=firestore` (ดู `CLAUDE.md`).
 
-- **SIT** service: `adge-ranking-sit` (branch นี้), `DB_SCHEMA=sit`.
-- **Production** service: `ton-phet-ranking` (branch `main`), `DB_SCHEMA=public`.
+- **SIT** service: `adge-ranking-sit` (branch นี้), project `adge-tennis-nonprd`.
+- **Production**: project `adge-tennis-prod` (ยังว่าง — งานในอนาคต, branch `main`).
